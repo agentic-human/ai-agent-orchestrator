@@ -1,0 +1,6 @@
+git+https://github.com/joaomdmoura/crewAI.git
+langchain-google-community
+openai
+python-dotenv
+crewai-tools
+
