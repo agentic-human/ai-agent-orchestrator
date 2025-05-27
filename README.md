@@ -14,14 +14,24 @@ This project demonstrates how to:
 
 ---
 
+## Glossary
+| Concept |	Description |
+|---------|-------------|
+| Agent   |	An encapsulated unit of capability and intent (LLM + prompt + optional tools), responsible for performing a role. |
+| Task    |	A unit of work associated with an agent. Each task includes a goal, optional tools, expected output, and context. |
+| Crew    |	A container that holds agents and their assigned tasks, managing their execution as a pipeline or dynamic workflow. |
+| Tools   |	Optional external functionality (e.g., web search, database access) that agents can invoke during task execution. |
+
+---
+
 ##  Architecture
 ```mermaid
 flowchart TD
-    A[User Task] --> B[Meta-Agent\n(Orchestrator)]
+    A[User Task] --> B[Meta-Agent - Orchestrator]
 
-    B --> C[Data Agent\n(Gathers info)]
-    B --> D[Analysis Agent\n(Extracts insights)]
-    B --> E[Writer Agent\n(Creates report)]
+    B --> C[Data Agent - Gathers info]
+    B --> D[Analysis Agent - Extracts insights]
+    B --> E[Writer Agent - Creates report]
 
     C --> F[Intermediary Output]
     D --> F
@@ -34,8 +44,36 @@ flowchart TD
 
 ---
 
-##  Project Structure
+## Architecture Breakdown
 
+### 1. Agent Definitions:
+* Data Analyst: Collects real-time data via `WebSearchTool`.
+* Analysis Agent: Analyzes raw data to extract insights.
+* Technical Writer: Synthesizes analysis into clear written content.
+
+### 2. Task Assignments:
+Tasks are mapped to agents via a custom `assign_agents()` function. Each task includes:
+* A description
+* An agent role
+* Expected output format
+* Tools (optional)
+
+### 3. Crew Instantiation:
+A Crew object is initialized with:
+* The list of agents
+* The list of tasks
+* (Optional) execution configuration like `verbose=True`
+
+### 4. Execution:
+1. The crew is launched using `crew.kickoff()`.
+2. Tasks are routed to appropriate agents.
+3. Agent outputs are passed through the task pipeline.
+4. Final result is returned to the user.
+
+---
+
+##  Project Structure
+```
 ai-agent-orchestrator/
 ├── agents/
 │ ├── meta_agent.py      # Meta-agent and task planner
@@ -49,6 +87,7 @@ ai-agent-orchestrator/
 ├── main.py              # Entry point
 ├── requirements.txt     # Package imports
 └── README.md
+```
 
 ---
 
@@ -85,14 +124,10 @@ python main.py
 Input: "Write a report on the state of solar energy in the US."
 
 What happens:
-
-The MetaAgent assigns roles to Data, Analysis, and Writer agents.
-
-The DataAgent searches for recent info using Google Search.
-
-The AnalysisAgent summarizes key insights.
-
-The WriterAgent compiles it into a professional report.
+1. The MetaAgent assigns roles to Data, Analysis, and Writer agents.
+2. The DataAgent searches for recent info using Google Search.
+3. The AnalysisAgent summarizes key insights.
+4. The WriterAgent compiles it into a professional report.
 
 ---
 
@@ -101,6 +136,8 @@ The WriterAgent compiles it into a professional report.
 * LangChain – LLM tools and pipelines
 * OpenAI API – LLM backbone
 * Python 3.9 - 3.11 # It is recommended to install pyenv to support multiple versions of Python locally
+
+---
 
 ## Troubleshooting
 ### Python Version Error
@@ -153,7 +190,7 @@ Verify it worked:
 ```bash
 python --version
 ```
-# Should show Python 3.11.8
+Should show Python 3.11.8
 
 4. Reinstall Dependencies
 After switching to Python 3.11:
