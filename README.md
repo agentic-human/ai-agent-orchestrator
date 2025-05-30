@@ -95,7 +95,7 @@ ai-agent-orchestrator/
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/your-username/ai-agent-orchestrator.git
+git clone https://github.com/agentic-human/ai-agent-orchestrator.git
 cd ai-agent-orchestrator
 ```
 
