@@ -1,38 +1,92 @@
 from dotenv import load_dotenv
 load_dotenv()
+from agents.manager_agent import get_manager_agent
+from crewai import Agent, Task, Crew
+from crews.static_crew_runner import run_task 
+from utils.functions import parse_agent_specs_from_task_outputs
 
-from crewai import Crew
-from agents.meta_agent import meta_agent, assign_agents
+def run_dynamic_crew():
+    # Get user prompt for the objective
+    user_prompt = input("What do you want the crew to accomplish? ")
 
-def run_task(user_input):
-    # Assign agents and tasks dynamically based on the input
-    task_plan = assign_agents(user_input)
+    # Get the manager agent
+    manager = get_manager_agent()
 
-    for agent, task in task_plan:
-        print(f"\n--- Agent: {agent.role} ---")
-        print(f"Task: {task}")
-        print(f"Task description: {task.description}")
-        print(f"Task type: {type(task)}")
-        print(f"Task config: {getattr(task, 'config', 'NO CONFIG')}")
-        print(f"Config type: {type(getattr(task, 'config', {}))}")
+    # Create the manager's planning task
+    manager_task = Task(
+        description=f"""
+        Based on the user's objective: "{user_prompt}",
+        design a crew of agents that can accomplish the task.
 
-
-
-    # Create the crew
-    crew = Crew(
-        agents=[meta_agent] + [a for a, _ in task_plan],
-        tasks=[t for _, t in task_plan], 
-        verbose=True
+        Return a JSON list of agents with:
+          - 'role': the agent's role
+          - 'goal': what the agent aims to achieve
+          - 'backstory': background to give the agent context
+          - 'task_description': what this agent will specifically do
+        """,
+        agent=manager,
+        expected_output="A JSON list of agent specs with keys: role, goal, backstory, task_description."
     )
 
 
-    # Run the crew
-    result = crew.kickoff()
+    # Run the manager crew
+    manager_crew = Crew(agents=[manager], tasks=[manager_task])
+    manager_output = manager_crew.kickoff()
 
-    # Output the final result
-    print("\n--- Final Output ---\n")
-    print(result)
+    # Access the first task output
+    # print(type(manager_output.tasks_output[0]))
+    for idx, t in enumerate(manager_output.tasks_output):
+        raw_content = getattr(t, "raw", None)
+        print(f"Task output {idx} raw content: {repr(raw_content)}")
+
+
+    # Set the Agent specs
+    agent_specs = parse_agent_specs_from_task_outputs(manager_output.tasks_output)
+
+
+    # Instantiate agents and tasks from spec
+    agents = []
+    tasks = []
+
+    for spec in agent_specs:
+        agent = Agent(
+            role=spec["role"],
+            goal=spec["goal"],
+            backstory=spec["backstory"],
+            verbose=True
+        )
+        task = Task(
+            description=spec["task_description"],
+            agent=agent,
+            expected_output=f"A successful completion of: {spec['task_description']}"
+        )
+
+        agents.append(agent)
+        tasks.append(task)
+
+    # Run the dynamic crew
+    print("\n=== Running Your Custom Dynamic Crew ===\n")
+    dynamic_crew = Crew(agents=agents, tasks=tasks)
+    final_output = dynamic_crew.kickoff()
+
+    print("\n=== Final Output ===")
+    print(final_output)
+
+
+def main():
+    print("Choose execution mode:")
+    print("1. Use statically defined crew")
+    print("2. Generate crew dynamically using manager agent")
+    choice = input("Enter 1 or 2: ")
+
+    if choice.strip() == "1":
+        user_input = input("Enter a high-level task: ")
+        run_task(user_input)
+    elif choice.strip() == "2":
+        run_dynamic_crew()
+    else:
+        print("Invalid choice. Please enter 1 or 2.")
 
 if __name__ == "__main__":
-    user_input = input("Enter a high-level task: ")
-    run_task(user_input)
+    main()
+
