@@ -1,6 +1,3 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 from crewai import Crew
 from agents.meta_agent import meta_agent, assign_agents
 
