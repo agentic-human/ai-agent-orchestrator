@@ -1,38 +1,23 @@
 from dotenv import load_dotenv
 load_dotenv()
+from crews.static_crew_runner import run_task 
+from crews.dynamic_crew_runner import run_crew
 
-from crewai import Crew
-from agents.meta_agent import meta_agent, assign_agents
+def main():
+    print("Choose execution mode:")
+    print("1. Use statically defined crew")
+    print("2. Generate crew dynamically using manager agent")
+    choice = input("Enter 1 or 2: ")
 
-def run_task(user_input):
-    # Assign agents and tasks dynamically based on the input
-    task_plan = assign_agents(user_input)
-
-    for agent, task in task_plan:
-        print(f"\n--- Agent: {agent.role} ---")
-        print(f"Task: {task}")
-        print(f"Task description: {task.description}")
-        print(f"Task type: {type(task)}")
-        print(f"Task config: {getattr(task, 'config', 'NO CONFIG')}")
-        print(f"Config type: {type(getattr(task, 'config', {}))}")
-
-
-
-    # Create the crew
-    crew = Crew(
-        agents=[meta_agent] + [a for a, _ in task_plan],
-        tasks=[t for _, t in task_plan], 
-        verbose=True
-    )
-
-
-    # Run the crew
-    result = crew.kickoff()
-
-    # Output the final result
-    print("\n--- Final Output ---\n")
-    print(result)
+    if choice.strip() == "1":
+        user_input = input("Enter a high-level research task: ")
+        run_task(user_input)
+    elif choice.strip() == "2":
+        user_input = input("Enter a high-level research task: ")
+        run_crew(user_input)
+    else:
+        print("Invalid choice. Please enter 1 or 2.")
 
 if __name__ == "__main__":
-    user_input = input("Enter a high-level task: ")
-    run_task(user_input)
+    main()
+
