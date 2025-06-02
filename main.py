@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 from crews.static_crew_runner import run_task 
 from crews.dynamic_crew_runner import run_crew
 
